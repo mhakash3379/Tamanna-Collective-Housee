@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamanna Collective House - Modern Apparel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter (for English) and Hind Siliguri (for Bengali) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            OAuthProvider,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        // IMPORTANT: Replace with your actual Firebase config
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Expose auth functions to global scope
+        window.auth = auth;
+        window.GoogleAuthProvider = GoogleAuthProvider;
+        window.OAuthProvider = OAuthProvider;
+        window.signInWithPopup = signInWithPopup;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+    </script>
+
+
+    <style>
+        /* Custom styles */
+        body {
+            background-color: #f8fafc; /* Light gray background */
+        }
+
+        /* Set default font for Bengali */
+        html[lang="bn"] body {
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+
+        /* Set font for English */
+        html[lang="en"] body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .hero-section {
+            background-image: url('https://placehold.co/1600x900/e2e8f0/64748b?text=Stylish+Apparel');
+            background-size: cover;
+            background-position: center;
+        }
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+        .product-card:hover .add-to-cart-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .add-to-cart-btn {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .category-btn.active {
+            background-color: #0f172a;
+            color: white;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 nav-shadow">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Tamanna Collective House</a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-slate-600 hover:text-slate-900 transition-colors" data-lang-key="nav_home"></a>
+                <a href="#shop" class="text-slate-600 hover:text-slate-900 transition-colors" data-lang-key="nav_shop"></a>
+                <a href="#new-arrivals" class="text-slate-600 hover:text-slate-900 transition-colors" data-lang-key="nav_new"></a>
+                <a href="#about" class="text-slate-600 hover:text-slate-900 transition-colors" data-lang-key="nav_about"></a>
+                <a href="#contact" class="text-slate-600 hover:text-slate-900 transition-colors" data-lang-key="nav_contact"></a>
+            </div>
+
+            <!-- Icons & Language Switcher -->
+            <div class="flex items-center space-x-4">
+                <div id="auth-container" class="flex items-center space-x-4">
+                     <button id="login-btn" class="text-slate-600 hover:text-slate-900 flex items-center space-x-2">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span data-lang-key="login"></span>
+                    </button>
+                </div>
+                <button id="search-icon" class="text-slate-600 hover:text-slate-900">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+                <button id="cart-icon" class="relative text-slate-600 hover:text-slate-900">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">0</span>
+                </button>
+                 <!-- Language Switcher -->
+                <button id="lang-switcher" class="text-sm font-semibold text-slate-600 hover:text-slate-900 border px-2 py-1 rounded-md"></button>
+                <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-slate-900">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-200">
+            <a href="#" class="block py-3 px-6 text-slate-600 hover:bg-slate-50" data-lang-key="nav_home"></a>
+            <a href="#shop" class="block py-3 px-6 text-slate-600 hover:bg-slate-50" data-lang-key="nav_shop"></a>
+            <a href="#new-arrivals" class="block py-3 px-6 text-slate-600 hover:bg-slate-50" data-lang-key="nav_new"></a>
+            <a href="#about" class="block py-3 px-6 text-slate-600 hover:bg-slate-50" data-lang-key="nav_about"></a>
+            <a href="#contact" class="block py-3 px-6 text-slate-600 hover:bg-slate-50" data-lang-key="nav_contact"></a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section h-[60vh] md:h-[80vh] flex items-center justify-center text-white">
+            <div class="text-center bg-black/50 p-8 rounded-lg">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4" data-lang-key="hero_title"></h1>
+                <p class="text-lg md:text-xl mb-8 max-w-2xl" data-lang-key="hero_subtitle"></p>
+                <a href="#shop" class="bg-white text-slate-900 font-semibold py-3 px-8 rounded-lg hover:bg-slate-200 transition-colors text-lg" data-lang-key="hero_button"></a>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories" class="py-12 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-2xl font-bold text-center mb-8" data-lang-key="categories_title"></h2>
+                <div id="category-buttons" class="flex flex-wrap justify-center gap-4">
+                    <button class="category-btn active px-6 py-2 font-semibold border border-slate-300 rounded-full hover:bg-slate-100 transition" data-category="all" data-lang-key="category_all"></button>
+                    <button class="category-btn px-6 py-2 font-semibold border border-slate-300 rounded-full hover:bg-slate-100 transition" data-category="t-shirt" data-lang-key="category_tshirt"></button>
+                    <button class="category-btn px-6 py-2 font-semibold border border-slate-300 rounded-full hover:bg-slate-100 transition" data-category="jacket" data-lang-key="category_jacket"></button>
+                    <button class="category-btn px-6 py-2 font-semibold border border-slate-300 rounded-full hover:bg-slate-100 transition" data-category="jeans" data-lang-key="category_jeans"></button>
+                    <button class="category-btn px-6 py-2 font-semibold border border-slate-300 rounded-full hover:bg-slate-100 transition" data-category="hoodie" data-lang-key="category_hoodie"></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Products Section -->
+        <section id="shop" class="py-16 sm:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12" data-lang-key="all_products"></h2>
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Product Card 1 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="t-shirt">
+                        <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/d1d5db/374151?text=T-Shirt" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                            <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Classic Tee', 550)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_classic_tee"></h3>
+                            <p class="text-slate-500">BDT 550</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 2 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="jacket">
+                        <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/9ca3af/1f2937?text=Denim+Jacket" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                             <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Denim Jacket', 1500)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_denim_jacket"></h3>
+                            <p class="text-slate-500">BDT 1500</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 3 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="jeans">
+                         <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/6b7280/111827?text=Slim+Fit+Jeans" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                             <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Slim Fit Jeans', 1200)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_slim_fit_jeans"></h3>
+                            <p class="text-slate-500">BDT 1200</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 4 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="hoodie">
+                        <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/4b5563/f9fafb?text=Cozy+Hoodie" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                             <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Cozy Hoodie', 950)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_cozy_hoodie"></h3>
+                            <p class="text-slate-500">BDT 950</p>
+                        </div>
+                    </div>
+                     <!-- Product Card 5 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="t-shirt">
+                        <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/9ca3af/1f2937?text=Linen+Shirt" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                            <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Linen Shirt', 850)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_linen_shirt"></h3>
+                            <p class="text-slate-500">BDT 850</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 6 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-md group" data-category="jeans">
+                        <div class="relative overflow-hidden">
+                            <img src="https://placehold.co/400x500/6b7280/111827?text=Chino+Shorts" alt="Product Image" class="w-full h-auto product-image transition-transform duration-300">
+                             <button class="add-to-cart-btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white py-2 px-6 rounded-full font-semibold whitespace-nowrap" onclick="addToCart('Chino Shorts', 750)" data-lang-key="add_to_cart"></button>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-lg" data-lang-key="product_chino_shorts"></h3>
+                            <p class="text-slate-500">BDT 750</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="py-16 sm:py-24 bg-slate-100">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <img src="https://placehold.co/600x400/e2e8f0/64748b?text=Our+Story" alt="About Us" class="rounded-lg shadow-lg">
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold mb-4" data-lang-key="about_title"></h2>
+                        <p class="text-slate-600 mb-4 leading-relaxed" data-lang-key="about_p1"></p>
+                        <p class="text-slate-600 leading-relaxed" data-lang-key="about_p2"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-slate-900 text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Tamanna Collective House</h3>
+                    <p class="text-slate-400" data-lang-key="footer_about_p"></p>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="font-semibold mb-4" data-lang-key="footer_quick_links"></h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white" data-lang-key="nav_home"></a></li>
+                        <li><a href="#shop" class="text-slate-400 hover:text-white" data-lang-key="nav_shop"></a></li>
+                        <li><a href="#about" class="text-slate-400 hover:text-white" data-lang-key="nav_about"></a></li>
+                    </ul>
+                </div>
+                <!-- Contact -->
+                <div>
+                    <h3 class="font-semibold mb-4" data-lang-key="footer_contact_us"></h3>
+                    <p class="text-slate-400" data-lang-key="footer_address"></p>
+                    <p class="text-slate-400" data-lang-key="footer_phone"></p>
+                    <p class="text-slate-400" data-lang-key="footer_whatsapp"></p>
+                </div>
+                <!-- Social Media -->
+                <div>
+                    <h3 class="font-semibold mb-4" data-lang-key="footer_follow"></h3>
+                    <div class="flex space-x-4">
+                        <a href="https://www.facebook.com/tamannacollectivehouse" target="_blank" class="text-slate-400 hover:text-white">
+                            <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/>
+                            </svg>
+                        </a>
+                        <a href="https://wa.me/8801731643202" target="_blank" class="text-slate-400 hover:text-white">
+                            <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white"><i data-lucide="instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 mt-8 pt-6 text-center text-slate-500 text-sm">
+                <p data-lang-key="footer_copyright"></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-96 p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold" data-lang-key="login_signup"></h3>
+                <button id="close-auth-modal-btn" class="text-slate-500 hover:text-slate-800"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div>
+                <p class="mb-4 text-slate-600" data-lang-key="login_prompt"></p>
+                <!-- Email/Phone input can be added here if needed -->
+                <div class="flex flex-col space-y-3">
+                     <button id="google-signin-btn" class="w-full bg-white text-slate-700 border border-slate-300 py-2.5 rounded-lg font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,36.626,44,31.1,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                        <span data-lang-key="continue_google"></span>
+                    </button>
+                    <button id="apple-signin-btn" class="w-full bg-black text-white py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.223,8.428c-0.508-2.534-2.681-4.386-5.248-4.428c-0.422-0.007-0.843,0.015-1.25,0.015c-1.834,0-3.615,0.846-4.789,2.228c-1.923,2.265-1.858,5.552,0.156,7.67c0.967,1.021,2.231,1.684,3.615,1.684c0.422,0,0.843-0.045,1.25-0.09c2.223-0.24,4.212-1.8,5.102-3.834C19.253,10.97,19.731,9.724,19.223,8.428z M14.651,3.155c1.036-1.166,2.12-2.399,3.693-2.618c-0.038,0.447-0.152,0.88-0.342,1.289c-0.547,1.149-1.492,2.134-2.533,2.83C15.08,4.356,14.651,3.8,14.651,3.155z"></path></svg>
+                        <span data-lang-key="continue_apple"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-xl font-semibold" data-lang-key="cart_title"></h3>
+                <button id="close-cart-btn" class="text-slate-500 hover:text-slate-800"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div id="cart-items" class="p-4 overflow-y-auto flex-grow">
+                 <p class="text-slate-500 text-center" data-lang-key="cart_empty"></p>
+            </div>
+            <div class="p-4 border-t">
+                <div class="flex justify-between items-center font-bold text-lg mb-4">
+                    <span data-lang-key="cart_total"></span>
+                    <span id="cart-total">BDT 0.00</span>
+                </div>
+                <button id="checkout-btn" class="w-full bg-slate-900 text-white py-3 rounded-lg font-semibold hover:bg-slate-800 transition-colors" data-lang-key="cart_checkout"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Modal -->
+    <div id="search-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-start justify-center pt-20">
+         <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2">
+             <div class="p-4">
+                <div class="relative">
+                    <input type="text" id="search-input" class="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500" data-lang-key="search_placeholder" placeholder="">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                </div>
+             </div>
+         </div>
+    </div>
+
+    <script type="module">
+        // This script is placed at the end of the body, so the DOM is loaded.
+        // We can safely execute the code without waiting for window.onload.
+
+        // --- LANGUAGE TRANSLATION DATA ---
+        const translations = {
+          en: {
+            nav_home: "Home", nav_shop: "Shop", nav_new: "New Arrivals", nav_about: "About", nav_contact: "Contact",
+            hero_title: "Style That Defines You", hero_subtitle: "Discover our new collection of modern apparel designed for comfort and style.", hero_button: "Shop Now",
+            categories_title: "Browse by Category", category_all: "All", category_tshirt: "T-Shirts", category_jacket: "Jackets", category_jeans: "Jeans", category_hoodie: "Hoodies",
+            all_products: "Our Products",
+            about_title: "About Tamanna Collective House",
+            about_p1: "Welcome to Tamanna Collective House, your online destination for unique and stylish apparel. Based in Naogaon Sadar, we are a passionate online-only brand dedicated to bringing you the latest trends and timeless pieces.",
+            about_p2: "Our collection is carefully curated to ensure quality and style, helping you express your individuality with every outfit. We are more than just a clothing store; we are a community built on a love for fashion. Connect with us on our social channels and be a part of our story.",
+            footer_about_p: "Modern apparel for the modern individual.", footer_quick_links: "Quick Links", footer_contact_us: "Contact Us", footer_address: "Online Store | Based in Naogaon Sadar", footer_phone: "Phone: 01731643202", footer_whatsapp: "WhatsApp: 01731643202", footer_follow: "Follow Us", footer_copyright: "&copy; 2025 Tamanna Collective House. All Rights Reserved.",
+            cart_title: "Your Cart", cart_empty: "Your cart is empty.", cart_total: "Total:", cart_checkout: "Checkout",
+            search_placeholder: "Search for products...",
+            product_classic_tee: "Classic Tee", product_denim_jacket: "Denim Jacket", product_slim_fit_jeans: "Slim Fit Jeans", product_cozy_hoodie: "Cozy Hoodie", product_linen_shirt: "Linen Shirt", product_chino_shorts: "Chino Shorts",
+            add_to_cart: "Add to Cart",
+            login: "Login", logout: "Logout", login_signup: "Login or Sign Up", login_prompt: "Continue with one of the following options to login or create an account.", continue_google: "Continue with Google", continue_apple: "Continue with Apple"
+          },
+          bn: {
+            nav_home: "হোম", nav_shop: "শপ", nav_new: "নতুন কালেকশন", nav_about: "আমাদের সম্পর্কে", nav_contact: "যোগাযোগ",
+            hero_title: "আপনার ব্যক্তিত্বের প্রকাশ", hero_subtitle: "আমাদের আরামদায়ক এবং স্টাইলিশ পোশাকের নতুন সংগ্রহ দেখুন।", hero_button: "এখনই কিনুন",
+            categories_title: "ক্যাটাগরি ব্রাউজ করুন", category_all: "সব", category_tshirt: "টি-শার্ট", category_jacket: "জ্যাকেট", category_jeans: "জিন্স", category_hoodie: "হুডি",
+            all_products: "আমাদের পণ্য",
+            about_title: "তামান্না কালেক্টিভ হাউস সম্পর্কে",
+            about_p1: "তামান্না কালেক্টিভ হাউসে আপনাকে স্বাগতম, এটি আপনার অনন্য এবং স্টাইলিশ পোশাকের অনলাইন ঠিকানা। নওগাঁ সদরে অবস্থিত, আমরা একটি অনলাইন-ভিত্তিক ব্র্যান্ড যা আপনাকে সর্বশেষ ট্রেন্ড এবং সেরা পোশাক সরবরাহ করতে প্রতিশ্রুতিবদ্ধ।",
+            about_p2: "আমাদের সংগ্রহটি গুণমান এবং শৈলী নিশ্চিত করার জন্য যত্ন সহকারে তৈরি করা হয়েছে, যা আপনাকে প্রতিটি পোশাকে আপনার স্বতন্ত্রতা প্রকাশ করতে সহায়তা করে। আমরা কেবল একটি পোশাকের দোকান নই; আমরা ফ্যাশনের প্রতি ভালবাসা থেকে তৈরি একটি কমিউনিটি। আমাদের সামাজিক চ্যানেলগুলিতে আমাদের সাথে সংযুক্ত হন এবং আমাদের গল্পের অংশ হন।",
+            footer_about_p: "আধুনিক মানুষের জন্য আধুনিক পোশাক।", footer_quick_links: "দ্রুত লিঙ্ক", footer_contact_us: "যোগাযোগ করুন", footer_address: "অনলাইন স্টোর | নওগাঁ সদর", footer_phone: "ফোন: ০১৭৩১৬৪৩২০২", footer_whatsapp: "হোয়াটসঅ্যাপ: ০১৭৩১৬৪৩২০২", footer_follow: "আমাদের অনুসরণ করুন", footer_copyright: "&copy; ২০২৫ তামান্না কালেক্টিভ হাউস। সর্বস্বত্ব সংরক্ষিত।",
+            cart_title: "আপনার কার্ট", cart_empty: "আপনার কার্ট খালি।", cart_total: "মোট:", cart_checkout: "চেকআউট করুন",
+            search_placeholder: "পণ্য অনুসন্ধান করুন...",
+            product_classic_tee: "ক্লাসিক টি-শার্ট", product_denim_jacket: "ডেনিম জ্যাকেট", product_slim_fit_jeans: "স্লিম ফিট জিন্স", product_cozy_hoodie: "আরামদায়ক হুডি", product_linen_shirt: "লিনেন শার্ট", product_chino_shorts: "চিনো শর্টস",
+            add_to_cart: "কার্টে যোগ করুন",
+            login: "লগইন", logout: "লগআউট", login_signup: "লগইন বা সাইন আপ করুন", login_prompt: "অ্যাকাউন্ট তৈরি করতে বা লগইন করতে নিম্নলিখিত বিকল্পগুলির মধ্যে একটি দিয়ে চালিয়ে যান।", continue_google: "Google দিয়ে চালিয়ে যান", continue_apple: "Apple দিয়ে চালিয়ে যান"
+          }
+        };
+
+        // --- STATE ---
+        let cart = [];
+        let currentLang = 'bn'; // Default language is Bengali
+
+        // --- DOM Elements ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const cartIcon = document.getElementById('cart-icon');
+        const cartModal = document.getElementById('cart-modal');
+        const closeCartBtn = document.getElementById('close-cart-btn');
+        const cartCount = document.getElementById('cart-count');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const cartTotalEl = document.getElementById('cart-total');
+        const searchIcon = document.getElementById('search-icon');
+        const searchModal = document.getElementById('search-modal');
+        const langSwitcher = document.getElementById('lang-switcher');
+        const categoryButtonsContainer = document.getElementById('category-buttons');
+        const productGrid = document.getElementById('product-grid');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const authModal = document.getElementById('auth-modal');
+        const loginBtn = document.getElementById('login-btn');
+        const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
+        const googleSigninBtn = document.getElementById('google-signin-btn');
+        const appleSigninBtn = document.getElementById('apple-signin-btn');
+        const authContainer = document.getElementById('auth-container');
+
+
+        // --- FUNCTIONS ---
+        
+        const setLanguage = (lang) => {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-lang-key]').forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        element.placeholder = translations[lang][key];
+                    } else {
+                        element.innerHTML = translations[lang][key];
+                    }
+                }
+            });
+            langSwitcher.textContent = lang === 'bn' ? 'English' : 'বাংলা';
+            updateCart();
+        };
+
+        langSwitcher.addEventListener('click', () => {
+            const newLang = currentLang === 'bn' ? 'en' : 'bn';
+            setLanguage(newLang);
+        });
+
+        mobileMenuBtn.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+
+        const toggleCartModal = () => { cartModal.classList.toggle('hidden'); };
+        cartIcon.addEventListener('click', toggleCartModal);
+        closeCartBtn.addEventListener('click', toggleCartModal);
+        
+        const toggleAuthModal = () => { authModal.classList.toggle('hidden'); };
+        loginBtn.addEventListener('click', toggleAuthModal);
+        closeAuthModalBtn.addEventListener('click', toggleAuthModal);
+
+        searchIcon.addEventListener('click', () => {
+            searchModal.classList.toggle('hidden');
+            if (!searchModal.classList.contains('hidden')) {
+                document.getElementById('search-input').focus();
+            }
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === cartModal) cartModal.classList.add('hidden');
+            if (e.target === searchModal) searchModal.classList.add('hidden');
+            if (e.target === authModal) authModal.classList.add('hidden');
+        });
+
+        window.addToCart = function(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            updateCart();
+            
+            const productNameKey = 'product_' + name.toLowerCase().replace(/ /g, '_').replace(/-/g, '_');
+            const addedMsg = document.createElement('div');
+            addedMsg.textContent = `${translations[currentLang][productNameKey] || name} ${currentLang === 'bn' ? 'কার্টে যোগ করা হয়েছে!' : 'added to cart!'}`;
+            addedMsg.className = 'fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg';
+            document.body.appendChild(addedMsg);
+            setTimeout(() => { addedMsg.remove(); }, 2000);
+        };
+
+        function updateCart() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `<p class="text-slate-500 text-center" data-lang-key="cart_empty">${translations[currentLang].cart_empty}</p>`;
+                cartTotalEl.textContent = `BDT 0.00`;
+                return;
+            }
+
+            cartItemsContainer.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                const productNameKey = 'product_' + item.name.toLowerCase().replace(/ /g, '_').replace(/-/g, '_');
+                const translatedName = translations[currentLang][productNameKey] || item.name;
+                itemEl.className = 'flex justify-between items-center py-2 border-b last:border-b-0';
+                itemEl.innerHTML = `
+                    <div>
+                        <p class="font-semibold">${translatedName}</p>
+                        <p class="text-sm text-slate-500">BDT ${item.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-semibold">${currentLang === 'bn' ? 'পরিমাণ' : 'Qty'}: ${item.quantity}</span>
+                    </div>
+                `;
+                cartItemsContainer.appendChild(itemEl);
+                total += item.price * item.quantity;
+            });
+
+            cartTotalEl.textContent = `BDT ${total.toFixed(2)}`;
+        }
+        
+        // Category Filtering
+        categoryButtonsContainer.addEventListener('click', (e) => {
+            if(e.target.tagName !== 'BUTTON') return;
+
+            // Update active button style
+            const buttons = categoryButtonsContainer.querySelectorAll('.category-btn');
+            buttons.forEach(button => button.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const selectedCategory = e.target.dataset.category;
+            const products = productGrid.querySelectorAll('.product-card');
+
+            products.forEach(product => {
+                if (selectedCategory === 'all' || product.dataset.category === selectedCategory) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        });
+        
+        // Checkout Button Logic
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) {
+                const alertMsg = document.createElement('div');
+                alertMsg.textContent = currentLang === 'bn' ? 'আপনার কার্ট খালি।' : 'Your cart is empty.';
+                alertMsg.className = 'fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50';
+                document.body.appendChild(alertMsg);
+                setTimeout(() => {
+                    alertMsg.remove();
+                }, 3000);
+                return;
+            }
+
+            let message = currentLang === 'bn' ? 'আসসালামু আলাইকুম, আমি এই পণ্যগুলো অর্ডার করতে চাই:\n\n' : 'Hello, I would like to order the following items:\n\n';
+            let total = 0;
+
+            cart.forEach(item => {
+                const productNameKey = 'product_' + item.name.toLowerCase().replace(/ /g, '_').replace(/-/g, '_');
+                const translatedName = translations[currentLang][productNameKey] || item.name;
+                const quantityText = currentLang === 'bn' ? `পরিমাণ: ${item.quantity}` : `Quantity: ${item.quantity}`;
+                message += `- ${translatedName} (${quantityText})\n`;
+                total += item.price * item.quantity;
+            });
+
+            const totalText = currentLang === 'bn' ? 'মোট:' : 'Total:';
+            message += `\n${totalText} BDT ${total.toFixed(2)}`;
+
+            const whatsappNumber = '8801731643202';
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+            window.open(whatsappUrl, '_blank');
+        });
+
+        // --- AUTHENTICATION LOGIC ---
+        const updateUIForUser = (user) => {
+            if (user) {
+                // User is signed in
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <img src="${user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=U'}" alt="User" class="w-8 h-8 rounded-full">
+                        <button id="logout-btn" class="text-slate-600 hover:text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                            <span data-lang-key="logout">${translations[currentLang].logout}</span>
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    window.signOut(window.auth);
+                });
+                authModal.classList.add('hidden');
+            } else {
+                // User is signed out
+                authContainer.innerHTML = `
+                    <button id="login-btn" class="text-slate-600 hover:text-slate-900 flex items-center space-x-2">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span data-lang-key="login">${translations[currentLang].login}</span>
+                    </button>
+                `;
+                lucide.createIcons();
+                document.getElementById('login-btn').addEventListener('click', toggleAuthModal);
+            }
+        };
+
+        window.onAuthStateChanged(window.auth, updateUIForUser);
+
+        // Google Sign-in
+        googleSigninBtn.addEventListener('click', () => {
+            const provider = new window.GoogleAuthProvider();
+            window.signInWithPopup(window.auth, provider)
+                .catch((error) => {
+                    console.error("Google Sign-in Error:", error);
+                });
+        });
+        
+        // Apple Sign-in
+        appleSigninBtn.addEventListener('click', () => {
+            // NOTE: Apple Sign-in requires a paid Apple Developer account and server-side configuration.
+            // This is a placeholder to show the UI.
+            alert("Apple Sign-in is not configured. It requires an Apple Developer account.");
+        });
+
+
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('nav-shadow');
+            } else {
+                header.classList.remove('nav-shadow');
+            }
+        });
+        
+        // --- INITIALIZATION ---
+        lucide.createIcons();
+        setLanguage(currentLang);
+        updateCart();
+        
+    </script>
+
+</body>
+</html>
